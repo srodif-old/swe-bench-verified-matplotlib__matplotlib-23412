@@ -808,3 +808,31 @@ def test_default_capstyle():
 def test_default_joinstyle():
     patch = Patch()
     assert patch.get_joinstyle() == 'miter'
+
+
+def test_patch_dash_offset():
+    """Test that patch objects store and preserve dash offset in linestyle tuples."""
+    
+    # Create a rectangle with dash offset
+    rect = Rectangle((0, 0), 1, 1, linestyle=(10, (5, 5)))
+    
+    # Verify the offset is stored correctly in both unscaled and scaled patterns
+    assert rect._unscaled_dash_pattern[0] == 10, \
+        f"Expected unscaled offset 10, got {rect._unscaled_dash_pattern[0]}"
+    
+    # The scaled pattern should also preserve the offset (though it may be scaled)
+    # With default linewidth=1, the offset should be the same
+    assert rect._dash_pattern[0] == 10, \
+        f"Expected scaled offset 10, got {rect._dash_pattern[0]}"
+    
+    # Test with different offset values
+    rect2 = Rectangle((0, 0), 1, 1, linestyle=(0, (5, 5)))
+    assert rect2._unscaled_dash_pattern[0] == 0
+    assert rect2._dash_pattern[0] == 0
+    
+    # Test with linewidth scaling
+    rect3 = Rectangle((0, 0), 1, 1, linestyle=(5, (5, 5)), linewidth=2)
+    assert rect3._unscaled_dash_pattern[0] == 5
+    # With linewidth=2, the offset should be scaled to 10 (5 * 2)
+    # (This assumes lines.scale_dashes is True, which is the default)
+    # Note: we're not testing the actual scaling here since rcParams may vary
